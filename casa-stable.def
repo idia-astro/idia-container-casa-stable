@@ -3,37 +3,54 @@ MirrorURL: http://archive.ubuntu.com/ubuntu/
 OSVersion: bionic
 Include: software-properties-common
 
+%labels
+
+	APPLICATION_NAME Ubuntu LTS + CASA 5.6.2-2
+	APPLICATION_URL https://casa.nrao.edu/
+	OS_VERSION 18.04 
+
+	SYSTEM_NAME iLifu
+	SYSTEM_SINGULARITY_VERSION 2.6
+	SYSTEM_URL http://www.ilifu.ac.za
+
+	AUTHOR_NAME Jeremy Smith
+	AUTHOR_EMAIL jeremy@idia.ac.za
+
 %environment
 	export LC_ALL=C
 	export PATH=$PATH:/opt/casa-pipeline-release-5.6.2-2.el7/bin/
 
 %post
-	apt-get update -y
-	apt-get install -y wget vim apt-utils git
+	# Declare variables for downloaded applications
+	export CASA_FILENAME=casa-pipeline-release-5.6.2-2.el7
+
 	apt-add-repository multiverse
 	apt-add-repository restricted
-	add-apt-repository -s ppa:kernsuite/kern-5
+	add-apt-repository -s ppa:kernsuite/kern-6
 	apt-get update -y
-
-	apt-get install -y tzdata
-	apt-get install -y libxrandr-dev libxcursor-dev libxinerama-dev libfontconfig1-dev fontconfig libxft-dev libgl1 libsm-dev libx11-dev libxext-dev libxi-dev libxrender-dev libxml2 libxslt1.1 libapparmor1 libtcl8.6 dbus dbus-x11 libtk8.6 tk8.6-blt2.5 blt python-tk ghostscript xvfb
-
-	apt-get install -y casacore-dev casacore-doc python-casacore python3-casacore pybdsf
+	apt-get install -y wget vim apt-utils git tzdata
+	apt-get install -y libxrandr-dev libxcursor-dev libxinerama-dev libfontconfig1-dev fontconfig libxft-dev libgl1 libsm-dev libx11-dev libxext-dev libxi-dev libxrender-dev libxml2 libxslt1.1 libapparmor1 libtcl8.6 dbus dbus-x11 libtk8.6 tk8.6-blt2.5 blt python-tk ghostscript xvfb curl
+	apt-get install -y casacore-dev casacore-doc python-casacore python3-pip pybdsf
 
 	mkdir -p /opt
-	wget -O - https://casa.nrao.edu/download/distro/casa-pipeline/release/el7/casa-pipeline-release-5.6.2-2.el7.tar.gz | tar xz
-	mv casa-pipeline-release-5.6.2-2.el7 /opt/
+	cd /opt
+	wget -O - https://casa.nrao.edu/download/distro/casa-pipeline/release/el7/${CASA_FILENAME}.tar.gz | tar xz
 	
 	# Update the Config file to log to memory only.
-	sed -i 's/__configs.HistoryManager.hist_file.*/__configs.HistoryManager.hist_file=":memory:"/g' /opt/casa-pipeline-release-5.6.2-2.el7/lib/python2.7/start_casa.py
-	sed -i "68i\ \ \ \ __configs.HistoryManager.enabled=False" /opt/casa-pipeline-release-5.6.2-2.el7/lib/python2.7/start_casa.py
+	sed -i 's/__configs.HistoryManager.hist_file.*/__configs.HistoryManager.hist_file=":memory:"/g' /opt/${CASA_FILENAME}/lib/python2.7/start_casa.py
+	sed -i "68i\ \ \ \ __configs.HistoryManager.enabled=False" /opt/${CASA_FILENAME}/lib/python2.7/start_casa.py
 
-	# Install virtualenv
-	apt-get install -y virtualenv
+	# Install python packages
+	apt-get install -y libboost-python-dev libcfitsio-dev wcslib-dev
+	pip3 install virtualenv
+	pip3 install --upgrade bokeh dask-ms[xarray]
 
 	# Cleanup the container
 	apt-get clean
 	apt-get autoclean
+
+	# Fix command prompt in Singularity 3.5.2
+    	printf 'export PS1="\u@$SINGULARITY_NAME:\w$ "' > /.singularity.d/env/999-psvars.sh
 
 %runscript
 	/opt/casa-pipeline-release-5.6.2-2.el7/bin/python "$@"
