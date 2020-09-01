@@ -5,7 +5,7 @@ Include: software-properties-common
 
 %labels
 
-	APPLICATION_NAME Ubuntu LTS + CASA 5.6.2-2
+	APPLICATION_NAME Ubuntu LTS + CASA 5.7.0
 	APPLICATION_URL https://casa.nrao.edu/
 	OS_VERSION 18.04 
 
@@ -18,11 +18,11 @@ Include: software-properties-common
 
 %environment
 	export LC_ALL=C
-	export PATH=$PATH:/opt/casa-pipeline-release-5.6.2-2.el7/bin/
+	export PATH=$PATH:/opt/casa-release-5.7.0-134.el7/bin/
 
 %post
 	# Declare variables for downloaded applications
-	export CASA_FILENAME=casa-pipeline-release-5.6.2-2.el7
+	export CASA_FILENAME=casa-release-5.7.0-134.el7
 
 	apt-add-repository multiverse
 	apt-add-repository restricted
@@ -30,27 +30,28 @@ Include: software-properties-common
 	apt-get update -y
 	apt-get install -y wget vim apt-utils git tzdata
 	apt-get install -y libxrandr-dev libxcursor-dev libxinerama-dev libfontconfig1-dev fontconfig libxft-dev libgl1 libsm-dev libx11-dev libxext-dev libxi-dev libxrender-dev libxml2 libxslt1.1 libapparmor1 libtcl8.6 dbus dbus-x11 libtk8.6 tk8.6-blt2.5 blt python-tk ghostscript xvfb curl
-	apt-get install -y casacore-dev casacore-doc python-casacore python3-pip pybdsf
+	apt-get install -y casacore-dev casacore-doc python-casacore python-pip
 
 	mkdir -p /opt
 	cd /opt
-	wget -O - https://casa.nrao.edu/download/distro/casa-pipeline/release/el7/${CASA_FILENAME}.tar.gz | tar xz
+	wget -O - https://casa.nrao.edu/download/distro/casa/release/el7/${CASA_FILENAME}.tar.gz | tar xz
+	#wget -O - https://casa.nrao.edu/download/distro/casa-pipeline/release/el7/${CASA_FILENAME}.tar.gz | tar xz
 	
 	# Update the Config file to log to memory only.
 	sed -i 's/__configs.HistoryManager.hist_file.*/__configs.HistoryManager.hist_file=":memory:"/g' /opt/${CASA_FILENAME}/lib/python2.7/start_casa.py
 	sed -i "68i\ \ \ \ __configs.HistoryManager.enabled=False" /opt/${CASA_FILENAME}/lib/python2.7/start_casa.py
 
 	# Install python packages
-	apt-get install -y libboost-python-dev libcfitsio-dev wcslib-dev
-	pip3 install virtualenv
-	pip3 install --upgrade bokeh dask-ms[xarray]
+	apt-get install -y libboost-python-dev libboost-numpy-dev python-setuptools gfortran libcfitsio-dev wcslib-dev
+	pip install astropy virtualenv ipython
+	pip install https://github.com/lofar-astron/PyBDSF/archive/v1.9.1.tar.gz
 
 	# Cleanup the container
 	apt-get clean
 	apt-get autoclean
 
 	# Fix command prompt in Singularity 3.5.2
-    	printf 'export PS1="\u@$SINGULARITY_NAME:\w$ "' > /.singularity.d/env/999-psvars.sh
+	printf 'export PS1="\u@$SINGULARITY_NAME:\w$ "' > /.singularity.d/env/999-psvars.sh
 
 %runscript
-	/opt/casa-pipeline-release-5.6.2-2.el7/bin/python "$@"
+	/opt/casa-release-5.7.0-134.el7/bin/python "$@"
