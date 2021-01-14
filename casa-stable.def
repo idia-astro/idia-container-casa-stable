@@ -18,11 +18,11 @@ Include: software-properties-common
 
 %environment
 	export LC_ALL=C
-	export PATH=$PATH:/opt/casa-release-5.7.0-134.el7/bin/
+	export PATH=$PATH:/opt/casa-release-5.7.2-4.el7/bin
 
 %post
 	# Declare variables for downloaded applications
-	export CASA_FILENAME=casa-release-5.7.0-134.el7
+	export CASA_FILENAME=casa-release-5.7.2-4.el7
 
 	apt-add-repository multiverse
 	apt-add-repository restricted
@@ -35,7 +35,6 @@ Include: software-properties-common
 	mkdir -p /opt
 	cd /opt
 	wget -O - https://casa.nrao.edu/download/distro/casa/release/el7/${CASA_FILENAME}.tar.gz | tar xz
-	#wget -O - https://casa.nrao.edu/download/distro/casa-pipeline/release/el7/${CASA_FILENAME}.tar.gz | tar xz
 	
 	# Update the Config file to log to memory only.
 	sed -i 's/__configs.HistoryManager.hist_file.*/__configs.HistoryManager.hist_file=":memory:"/g' /opt/${CASA_FILENAME}/lib/python2.7/start_casa.py
@@ -54,4 +53,4 @@ Include: software-properties-common
 	printf 'export PS1="\u@$SINGULARITY_NAME:\w$ "' > /.singularity.d/env/999-psvars.sh
 
 %runscript
-	/opt/casa-release-5.7.0-134.el7/bin/python "$@"
+	/opt/casa-release-5.7.2-4.el7/bin/python "$@"
